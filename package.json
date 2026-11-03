@@ -1,0 +1,36 @@
+{
+  "name": "etiquetas-farmacia",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gestión, diseño e impresión de etiquetas de precios para góndolas de farmacia",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,web -c blue,green \"npm run dev -w @etiquetas/server\" \"npm run dev -w @etiquetas/web\"",
+    "build": "npm run build -w @etiquetas/web",
+    "start": "npm run start -w @etiquetas/server",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:migrate": "npm run db:migrate -w @etiquetas/server",
+    "db:deploy": "npm run db:deploy -w @etiquetas/server",
+    "db:seed": "npm run db:seed -w @etiquetas/server",
+    "db:studio": "npm run db:studio -w @etiquetas/server",
+    "backup": "npm run backup -w @etiquetas/server"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.2.0",
+    "typescript": "~5.9.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.28.2": true
+  }
+}

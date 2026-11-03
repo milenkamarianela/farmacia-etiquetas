@@ -1,0 +1,19 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+# Entorno local (contiene rutas propias de cada PC)
+.env
+
+# Bases de datos SQLite locales y de pruebas
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Las copias de seguridad contienen datos reales: no van al repositorio
+backups/
+
+# Copias de la base demo usada para probar
+.demo-backups/

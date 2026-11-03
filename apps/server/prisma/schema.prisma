@@ -1,0 +1,138 @@
+// Esquema de la base de datos SQLite.
+// Convenciones:
+//  - Los importes se guardan en centavos (BigInt) para evitar errores de punto flotante.
+//  - Los productos no se borran físicamente: se desactivan (active = false), así se conserva
+//    su historial de precios e impresiones. Por eso las relaciones usan onDelete: Restrict.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                    Int            @id @default(autoincrement())
+  /// GTIN normalizado (EAN-13, EAN-8, UPC-A o GTIN-14). Identificador principal al importar.
+  barcode               String?        @unique
+  /// Código interno o SKU. Identificador alternativo cuando no hay código de barras.
+  sku                   String?        @unique
+  name                  String
+  brand                 String?
+  presentation          String?
+  categoryId            Int?
+  category              Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  priceCents            BigInt
+  priceUpdatedAt        DateTime       @default(now())
+  active                Boolean        @default(true)
+  /// Precio de la última etiqueta impresa. Si difiere de priceCents, la etiqueta está desactualizada.
+  lastPrintedPriceCents BigInt?
+  lastPrintedAt         DateTime?
+  /// Nombre, marca, presentación y códigos en minúsculas y sin acentos (ver buildProductSearchText).
+  searchText            String         @default("")
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  priceChanges          PriceChange[]
+  printJobItems         PrintJobItem[]
+
+  @@index([name])
+  @@index([categoryId])
+  @@index([active])
+  @@map("products")
+}
+
+model ImportBatch {
+  id               Int           @id @default(autoincrement())
+  fileName         String
+  createdAt        DateTime      @default(now())
+  createdCount     Int           @default(0)
+  updatedCount     Int           @default(0)
+  unchangedCount   Int           @default(0)
+  rejectedCount    Int           @default(0)
+  priceChangeCount Int           @default(0)
+  priceChanges     PriceChange[]
+
+  @@index([createdAt])
+  @@map("import_batches")
+}
+
+model PriceChange {
+  id            Int          @id @default(autoincrement())
+  productId     Int
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+  /// Null cuando es el precio con el que se dio de alta el producto.
+  oldPriceCents BigInt?
+  newPriceCents BigInt
+  changedAt     DateTime     @default(now())
+  /// Origen del cambio: CREATE | MANUAL | IMPORT (validado en la aplicación).
+  source        String
+  importBatchId Int?
+  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+
+  @@index([productId, changedAt])
+  @@index([changedAt])
+  @@map("price_changes")
+}
+
+model LabelTemplate {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  widthMm   Float
+  heightMm  Float
+  /// JSON validado con labelTemplateConfigSchema (@etiquetas/shared). Incluye "version".
+  config    String
+  isDefault Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  printJobs PrintJob[]
+
+  @@map("label_templates")
+}
+
+model PrintJob {
+  id               Int            @id @default(autoincrement())
+  createdAt        DateTime       @default(now())
+  templateId       Int
+  template         LabelTemplate  @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  /// Copia de la plantilla (medidas + config) al momento de imprimir, por si luego se edita.
+  templateSnapshot String
+  labelCount       Int
+  items            PrintJobItem[]
+
+  @@index([createdAt])
+  @@map("print_jobs")
+}
+
+model PrintJobItem {
+  id         Int      @id @default(autoincrement())
+  printJobId Int
+  printJob   PrintJob @relation(fields: [printJobId], references: [id], onDelete: Cascade)
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity   Int
+  /// Precio que quedó impreso en la etiqueta.
+  priceCents BigInt
+
+  @@index([productId])
+  @@map("print_job_items")
+}
+
+/// Configuración general clave/valor (por ejemplo, el nombre de la farmacia).
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}

@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "app",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "port": 3000
+    },
+    {
+      "name": "app-demo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "env": {
+        "DATABASE_URL": "file:./demo.db",
+        "PORT": "3001",
+        "BACKUP_DIR": "../../.demo-backups"
+      },
+      "port": 3001
+    }
+  ]
+}

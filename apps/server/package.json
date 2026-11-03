@@ -1,0 +1,43 @@
+{
+  "name": "@etiquetas/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "prisma migrate deploy && tsx src/index.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "backup": "tsx src/scripts/backup.ts",
+    "labels:sample": "tsx src/scripts/sample-labels.ts",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@etiquetas/shared": "*",
+    "@prisma/client": "6.19.3",
+    "exceljs": "^4.4.0",
+    "express": "^5.3.0",
+    "multer": "^2.5.0",
+    "papaparse": "^5.7.0",
+    "pdfkit": "^0.20.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/multer": "^2.3.0",
+    "@types/papaparse": "^5.5.2",
+    "@types/pdfkit": "^0.17.7",
+    "@types/supertest": "^6.0.3",
+    "prisma": "6.19.3",
+    "supertest": "^7.1.4",
+    "tsx": "^4.23.15",
+    "vitest": "^5.1.0"
+  }
+}
